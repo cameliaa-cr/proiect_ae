@@ -1,4 +1,4 @@
-const { User } = require('../database/models');
+const { User, Order, Product } = require("../database/models");
 const express = require('express');
 const bcrypt = require('bcrypt');
 const {verifyToken} = require('../utils/token.js');
@@ -122,5 +122,48 @@ router.delete('/:id', verifyToken, async (req, res) => {
         return res.status(500).json({success: false, message: 'Error deleting the user', data: {}});
     }
 })
+
+//GET All Orders ale unui User
+router.get("/:id/orders", verifyToken, async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        if (isNaN(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: "User id is not valid",
+                data: {}
+            });
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        //preluare lista de Order
+        const orders = await Order.findAll({
+            where: { userId },
+            include: { model: Product }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Orders retrieved successfully",
+            data: orders
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error retrieving orders",
+            data: error.message
+        });
+    }
+});
+
 
 module.exports = router;

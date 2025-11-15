@@ -34,8 +34,17 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-//router.post('/', verifyToken, async (req, res) => {
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
+
+    //verificare Role - creare permisa doar pentru ADMIN
+    if (req.userRole !== 'admin') {
+        return res.status(403).json({
+            success: false,
+            message: 'Only admins can create products',
+            data: {}
+        });
+    }
+    
     try {
         const product = await Product.create({
             ...req.body,
